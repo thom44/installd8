@@ -1,0 +1,180 @@
+#!/bin/bash
+# Drupal 7 Installer for Ubuntu Envirement
+# by Thomas Schuh
+####################################
+
+### Programm Setup ####
+
+# local ip address
+IP=127.0.0.1
+
+# path to the programm directory
+PATH_TO_SELF=/var/local/installd8
+
+# set filesystem user:group
+DRUPAL_USER=thom
+DRUPAL_GROUP=www-data
+
+# Database user and password
+DB_USER=root
+DB_PASSWD=root
+
+# Location source for installation Profiles
+#PATH_TO_STARTPROFILE=/var/www/sources/start-profiles
+
+# path to drush folder on this server
+PATH_TO_DRUSH=/usr/local/bin/drush
+
+# path to drush user configuration files
+PATH_TO_USERDRUSH=/home/thom/.drush
+
+# path to drush alias configuration files
+PATH_TO_DRUSHALIAS=/etc/drush
+
+# drush alias key for devel installation
+DEV_ALIAS=dev
+
+if [ "$1" = "--composor" -o "$1" = "-c" ]; then
+	INSTALL_TYPE="composer"
+else 
+	INSTALL_TYPE="Git clone"
+fi
+
+# simple prompt
+prompt_yes_no() {
+  while true; do
+    read -r -n 1 -p "${1:-Continue?} [y/n]: " REPLY
+    case $REPLY in
+      [yY]) echo ; return 0 ;;
+      [nN]) echo ; return 1 ;;
+      *) printf " \033[31m %s \n\033[0m" "invalid input"
+    esac 
+  done  
+}
+
+### Configuration Setup ###
+
+echo 'Conifgure your new Drupal 8 Installation'
+echo "Install Type is $INSTALL_TYPE"
+response=
+
+### Project Name ###
+echo -n "Enter the Name of the Project [] > "
+read response
+
+if [ -n "$response" ]; then
+    	PROJECT=$response
+	echo "your Project is $PROJECT"
+else
+	echo "Without name you cannot install a project. Try again!"
+        exit 1
+fi
+
+### Different Customer Name ###
+CUSTOMER=$PROJECT
+echo -n "Enter the Customer name, if it's not the project name [$CUSTOMER] > "
+read response
+
+if [ -n "$response" ]; then
+    	CUSTOMER=$response
+	echo "your CUSTOMER is $CUSTOMER"
+fi
+
+### Directory and Prefix ###
+PREFIX=kd
+
+echo -n "Enter the directory Name kd|thom|test [$PREFIX] > "
+read response
+
+if [ -n "$response" ]; then
+    	PREFIX=$response
+fi
+echo "the project path ist $PREFIX"
+
+
+if [ "$1" != "--uninstall" ]; then
+
+	### Drupal Version ###
+	DRUPAL_VERSION=8.1.*
+	echo '================================================'
+	echo 'For Composer Intsall use 8.1.* Wildcard'
+	echo 'For Git Install use 8.1.8 exact version number'
+	echo '================================================'
+	
+	echo -n "Enter the Drupal Version [$DRUPAL_VERSION] > "
+	read response
+
+	if [ -n "$response" ]; then
+	    	DRUPAL_VERSION=$response	
+	fi
+	echo "your will install Drupal $DRUPAL_VERSION"
+
+fi
+
+### Top Level Domain for Development ###
+TLD=local
+
+echo -n "Enter Top Level Domain for Development [$TLD] > "
+read response
+
+if [ -n "$response" ]; then
+    	TLD=$response
+fi
+echo "your development domain is $PROJECT.$TLD"
+
+
+### Diretory and Database Postfix ###
+POSTFIX=_d8
+
+echo -n "Enter the Diretory and Database Postfix [$POSTFIX] > "
+read response
+
+if [ -n "$response" ]; then
+    	POSTFIX=$response
+fi
+
+
+# directory postfix
+DIR_POSTFIX=$POSTFIX
+
+# drupal install dir
+DRUPAL_DIR=$PROJECT$DIR_POSTFIX
+
+# add PROJECT DIR AND DRUPAL ROOT DIR
+PROJECT_ROOT="/var/www/"$PREFIX"/"$CUSTOMER
+DRUPAL_DIR=$PROJECT$POSTFIX
+
+
+DRUPAL_ROOT=$PROJECT_ROOT"/"$DRUPAL_DIR
+
+if [ "$INSTALL_TYPE" = "composer" ]; then
+  
+  USE_TEMPLATE=0
+  if prompt_yes_no "Do you want to use Composer Template" ; then
+
+	USE_TEMPLATE=1	  	
+	DRUPAL_ROOT=$PROJECT_ROOT"/"$DRUPAL_DIR"/"web	
+	DRUPAL_VERSION="LATEST STABLE"
+  fi
+
+fi
+
+# database name
+DB_PREFIX=$PREFIX"_"
+DB_POSTFIX=$POSTFIX
+DB_NAME=$DB_PREFIX$PROJECT$DB_POSTFIX
+
+# Apache config prefix
+APACHE_PREFIX=$DB_PREFIX
+
+# Development Domain
+SITE_DOMAIN=$PROJECT.$TLD
+
+echo "Drupal Verion is $DRUPAL_VERSION"
+echo "The Drupal Root is $DRUPAL_ROOT"
+echo "The Database Name is $DB_NAME"
+echo "The Domain is $SITE_DOMAIN"
+
+source $PATH_TO_SELF"/"install.sh
+
+exit 0
