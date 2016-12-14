@@ -1,5 +1,5 @@
 # installd8
-Commandline tool - Drupal 8 installer on Ubuntu/Debian
+Drupal 8 installer on Ubuntu/Debian (Commandline Tool)
 
 # Installation
 * $ cd /var/local
