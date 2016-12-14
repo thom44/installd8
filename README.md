@@ -8,6 +8,7 @@ Commandline tool - Drupal 8 installer on Ubuntu/Debian
 
 # Usage
 * $ sudo installd8
+
 # Install with Composer 
 * $ sudo installd8 -c
 
